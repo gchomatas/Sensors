@@ -37,14 +37,12 @@ def allSensorMeasurementsToDataFrame():
 
     return dataFrame
 
-
 def getQueryResponseAsJson(apacheDrillQuery):
     apacheDrillQueryUrl = 'http://localhost:8047/query.json'
 
     response = requests.post('http://localhost:8047/query.json', json=apacheDrillQuery);
 
     return response.json()
-
 
 def createTempratureChart():
     sqlQuery = 'select tbl.`timestamp`, tbl.sensor.temperature_humidity_sensor as temperature from `dfs`.`/Users/gchomatas/AWS_S3/sensors/senseHAT/parquet` as tbl order by tbl.`timestamp`';
@@ -67,25 +65,29 @@ def createPressureChart():
 
     chart = dataFrame.plot(x='timestamp', y='pressure', use_index=True, subplots=True)
 
-# allSensorMeasurementsToDataFrame().plot(x='timestamp', y=['temperature', 'humidity', 'pressure'], use_index=True, subplots=True)
+def plotAllSensorsWithSubplots():
+    allSensorMeasurements = allSensorMeasurementsToDataFrame()
+
+    allSensorMeasurements.pressure = allSensorMeasurements.pressure[allSensorMeasurements.pressure.between(allSensorMeasurements.pressure.quantile(.001), allSensorMeasurements.pressure.quantile(1))]
+    
+    allSensorMeasurements.plot(x='timestamp', y=['temperature', 'humidity', 'pressure'], use_index=True, subplots=True)
+    # allSensorMeasurements.plot(x='timestamp', y=['temperature', 'humidity', 'pressure'], use_index=True, subplots=True, style='k.')
+    
+    plt.show()
+
+def boxPlotAllSensors():
+    allSensorMeasurements.boxplot('temperature')
+    allSensorMeasurements.boxplot('humidity')
+    allSensorMeasurements.boxplot('pressure')
+    plt.show()
+
+def main():
+    plotAllSensorsWithSubplots()
+    # createTempratureChart()
+    # createHumidityChart()
+    # createPressureChart()
 
 
-
-allSensorMeasurements = allSensorMeasurementsToDataFrame()
-
-#allSensorMeasurements.boxplot('temperature')
-
-allSensorMeasurements.boxplot('humidity')
-
-#allSensorMeasurements.boxplot('pressure')
-
-# allSensorMeasurements.plot(x='timestamp', y=['temperature', 'humidity', 'pressure'], use_index=True, subplots=True, style='k.')
-
-allSensorMeasurements.plot(x='timestamp', y=['temperature', 'humidity', 'pressure'], use_index=True, subplots=True)
-
-# createTempratureChart()
-# createHumidityChart()
-# createPressureChart()
-
-plt.show()
+if __name__ == "__main__":
+    main()
 
